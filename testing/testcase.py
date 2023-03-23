@@ -4,7 +4,7 @@ from tweets.models import Tweet
 
 class TestCase(DjangoTestCase):
 
-    def create_user(self, username, email, password=None):
+    def create_user(self, username, email=None, password=None):
         if password is None:
             password = 'generic password'
         if email is None:
