@@ -38,16 +38,3 @@ class TweetViewSet(viewsets.GenericViewSet):
         tweet = serializer.save()
         NewsFeedService.fanout_to_followers(tweet)
         return Response(TweetSerializer(tweet).data, status=201)
-    def create(self, request):
-        serializer = TweetSerializerForCreate(
-            data=request.data,
-            context={'request':request}
-        )
-        if not serializer.is_valid():
-            return Response({
-                'success':False,
-                'message':'Please check input.',
-                'errors':serializer.errors,
-            }, status=400)
-        tweet = serializer.save()
-        return Response(TweetSerializer(tweet).data, status=201)
