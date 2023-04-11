@@ -1,7 +1,11 @@
+from django.utils import timezone
 from rest_framework.test import APIClient
+from comments.models import Comment
 from testing.testcase import TestCase
 
 COMMENT_URL = '/api/comments/'
+COMMENT_DETAIL_URL = '/api/comments/{}/'
+
 class CommentApiTests(TestCase):
 
     def setUp(self):
@@ -48,3 +52,56 @@ class CommentApiTests(TestCase):
         self.assertEqual(response.data['user']['id'], self.alice.id)
         self.assertEqual(response.data['tweet_id'], self.tweet.id)
         self.assertEqual(response.data['content'], '1')
+
+    def test_destroy(self):
+        comment = self.create_comment(self.alice, self.tweet)
+        url = COMMENT_DETAIL_URL.format(comment.id)
+
+        #anonymous is not allowed
+        response = self.anonymous_client.delete(url)
+        self.assertEqual(response.status_code, 403)
+
+        #only object owner could delete object
+        response = self.bob_client.delete(url)
+        self.assertEqual(response.status_code, 403)
+
+        #object owner deletes object
+        count = Comment.objects.count()
+        response = self.alice_client.delete(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Comment.objects.count(), count - 1)
+
+    def test_update(self):
+        comment = self.create_comment(self.alice, self.tweet, 'old')
+        another_tweet = self.create_tweet(self.bob)
+        url = COMMENT_DETAIL_URL.format(comment.id)
+
+        #anonymous is not allowed
+        response = self.anonymous_client.put(url, {'content':"new"})
+        self.assertEqual(response.status_code, 403)
+
+        #only object owner could update object
+        response = self.bob_client.put(url, {'content':'new'})
+        self.assertEqual(response.status_code, 403)
+        comment.refresh_from_db()
+        self.assertNotEqual(comment.content, 'new')
+
+        #only content is updated
+        before_updated_at = comment.updated_at
+        before_created_at = comment.created_at
+        now = timezone.now()
+        response = self.alice_client.put(url, {
+            'content':'new',
+            'user_id':self.alice.id,
+            'tweet_id':another_tweet.id,
+            'create_at':now
+        })
+        self.assertEqual(response.status_code, 200)
+        comment.refresh_from_db()
+        self.assertEqual(comment.content, 'new')
+        self.assertEqual(comment.user, self.alice)
+        self.assertEqual(comment.tweet, self.tweet)
+        self.assertNotEqual(comment.created_at, now)
+        self.assertNotEqual(comment.updated_at, before_updated_at)
+
+
