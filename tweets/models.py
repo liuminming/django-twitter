@@ -16,7 +16,12 @@ class Tweet(models.Model):
     class Meta:
         index_together = (('user', 'created_at'),)
         ordering = ('user', '-created_at')
-        
+
+    @property
+    def comments(self):
+        return self.comment_set.all()
+        # return Comment.objects.filter(tweet=self)
+
     @property
     def hours_to_now(self):
         #datetime.now has no time zone info, need to add time zone info of utc
