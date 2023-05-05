@@ -25,7 +25,7 @@ class LikeViewSet(viewsets.GenericViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
         instance = serializer.save()
         return Response(
-            LikeSerializer(instance).data,
+            LikeSerializer(instance, context={'request': request}).data,
             status=status.HTTP_201_CREATED
         )
 
