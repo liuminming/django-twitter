@@ -157,6 +157,7 @@ if TESTING:
 AWS_STORAGE_BUCKET_NAME = 'django-twitter'
 AWS_S3_REGION_NAME = 'us-west-1'
 
+MEDIA_ROOT = 'media/'
 
 try:
     from .local_settings import *
