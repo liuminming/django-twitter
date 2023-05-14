@@ -1,6 +1,7 @@
 from testing.testcase import TestCase
 from rest_framework.test import APIClient
 from django.contrib.auth.models import User
+from accounts.models import UserProfile
 
 LOGIN_URL = '/api/accounts/login/'
 LOGOUT_URL = '/api/accounts/logout/'
@@ -114,6 +115,11 @@ class AccountApiTests(TestCase):
         response = self.client.post(SIGNUP_URL, data)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data['user']['username'], 'someone')
+
+        # verify user profile is created
+        created_user_id = response.data['user']['id']
+        profile = UserProfile.objects.filter(user_id=created_user_id).first()
+        self.assertNotEqual(profile, None)
 
         # verify login
         response = self.client.get(LOGIN_STATUS_URL)

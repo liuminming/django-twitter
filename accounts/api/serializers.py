@@ -5,7 +5,7 @@ from rest_framework import exceptions
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'email']
+        fields = ['id', 'username', 'email']
 
 class UserSerializerForTweet(serializers.ModelSerializer):
     class Meta:
@@ -56,5 +56,7 @@ class SignupSerializer(serializers.ModelSerializer):
             email = email,
             password = password
         )
+        # create UserProfile object
+        user.profile
         return user
 
