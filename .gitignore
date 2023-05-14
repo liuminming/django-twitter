@@ -1,6 +1,8 @@
 *.box
 .vagrant
 Vagrantfile
+.idea
+media/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
