@@ -1,18 +1,23 @@
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from accounts.api.serializers import (
     UserSerializer,
     LoginSerializer,
-    SignupSerializer
+    SignupSerializer, UserProfileSerializerForUpdate
 )
 from django.contrib.auth import (
 logout as django_logout,
 login as django_login,
 authenticate as django_authenticate,
 )
+
+from accounts.models import UserProfile
+from utils.permissions import IsObjectOwner
+
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -87,4 +92,12 @@ class AccountViewSet(viewsets.ViewSet):
             'success': True,
             'user': UserSerializer(user).data
         }, status=201)
+
+class UserProfileViewSet(
+    viewsets.GenericViewSet,
+    viewsets.mixins.UpdateModelMixin,
+):
+    queryset = UserProfile
+    permission_classes = (IsAuthenticated, IsObjectOwner,)
+    serializer_class = UserProfileSerializerForUpdate
 
