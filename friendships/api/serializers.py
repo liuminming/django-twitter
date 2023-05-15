@@ -4,23 +4,37 @@ from accounts.api.serializers import UserSerializerForFriendship
 from friendships.models import Friendship
 from rest_framework import serializers
 
+from friendships.services import FriendshipService
+
+
 # 可以通过 source=xxx 指定去 访问每个 model instance的xxx方法
 # 即model_instance.xxx来获得数据
 class FollowerSerializer(serializers.ModelSerializer):
     user = UserSerializerForFriendship(source='from_user')
-    created_at = serializers.DateTimeField()
+    has_followed = serializers.SerializerMethodField()
 
     class Meta:
         model = Friendship
-        fields = ('user', 'created_at')
+        fields = ('user', 'created_at', 'has_followed')
+
+    def get_has_followed(self, obj):
+        if self.context['request'].user.is_anonymous:
+            return False
+        return FriendshipService.has_followed(self.context['request'].user, obj.from_user)
 
 class FollowingSerializer(serializers.ModelSerializer):
     user = UserSerializerForFriendship(source='to_user')
-    created_at = serializers.DateTimeField()
+    has_followed = serializers.SerializerMethodField()
 
     class Meta:
         model = Friendship
-        fields = ('user', 'created_at')
+        fields = ('user', 'created_at', 'has_followed')
+
+    def get_has_followed(self, obj):
+        if self.context['request'].user.is_anonymous:
+            return False
+        return FriendshipService.has_followed(self.context['request'].user, obj.to_user)
+
 
 class FriendshipSerializerForCreate(serializers.ModelSerializer):
     from_user_id = serializers.IntegerField()
