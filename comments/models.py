@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
+from accounts.services import UserService
 from likes.models import Like
 from tweets.models import Tweet
 
@@ -30,4 +31,8 @@ class Comment(models.Model):
             self.content,
             self.tweet_id
         )
+
+    @property
+    def cached_user(self):
+        return UserService.get_user_through_cache(self.user_id)
 
