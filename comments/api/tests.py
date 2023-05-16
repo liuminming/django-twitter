@@ -12,6 +12,7 @@ NEWSFEED_LIST_API = '/api/newsfeeds/'
 class CommentApiTests(TestCase):
 
     def setUp(self):
+        self.clear_cache()
         self.alice = self.create_user('alice')
         self.alice_client = APIClient()
         self.alice_client.force_authenticate(self.alice)
