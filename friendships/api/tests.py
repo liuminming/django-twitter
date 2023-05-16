@@ -11,6 +11,7 @@ FOLLOWINGS_URL = '/api/friendships/{}/followings/'
 class FriendshipApiTests(TestCase):
 
     def setUp(self):
+        self.clear_cache()
         self.alice = self.create_user('alice')
         self.alice_client = APIClient()
         self.alice_client.force_authenticate(self.alice)
@@ -44,7 +45,7 @@ class FriendshipApiTests(TestCase):
         self.assertEqual(response.status_code, 201)
         # repeating follow works silently
         response = self.bob_client.post(url)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 201)
         # insert new data when following in an opposite way
         count = Friendship.objects.count()
         response = self.alice_client.post(FOLLOW_URL.format(self.bob.id))
@@ -183,7 +184,6 @@ class FriendshipApiTests(TestCase):
 
     def _test_friendship_pagination(self, url, page_size, max_page_size):
         response = self.anonymous_client.get(url, {'page': 1})
-        print(response.data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), page_size)
         self.assertEqual(response.data['total_pages'], 2)
