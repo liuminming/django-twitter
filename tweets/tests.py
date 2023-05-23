@@ -3,6 +3,9 @@ from testing.testcase import TestCase
 from tweets.constants import TweetPhotoStatus
 from tweets.models import Tweet, TweetPhoto
 from datetime import timedelta
+
+from utils.redis_client import RedisClient
+from utils.redis_serializer import DjangoModelSerializer
 from utils.time_helpers import utc_now
 
 
@@ -39,3 +42,16 @@ class TweetTests(TestCase):
         self.assertEqual(photo.user, self.alice)
         self.assertEqual(photo.status, TweetPhotoStatus.PENDING)
         self.assertEqual(self.tweet.tweetphoto_set.count(), 1)
+
+    def test_cache_tweet_in_redis(self):
+        tweet = self.create_tweet(self.alice)
+        conn = RedisClient.get_connection()
+        serialized_data = DjangoModelSerializer.serialize(tweet)
+        conn.set(f'tweet:{tweet.id}', serialized_data)
+        data = conn.get(f'tweet:not_exists')
+        self.assertEqual(data, None)
+
+        data = conn.get(f'tweet:{tweet.id}')
+        cached_tweet = DjangoModelSerializer.deserialize(data)
+        # assertEqual will compare content, even their in memory addresses are different
+        self.assertEqual(tweet, cached_tweet)
