@@ -11,7 +11,7 @@ class RedisHelper:
         conn = RedisClient.get_connection()
 
         serialized_list = []
-        for obj in objects:
+        for obj in objects[:settings.REDIS_LIST_LENGTH_LIMIT]:
             serialized_data = DjangoModelSerializer.serialize(obj)
             serialized_list.append(serialized_data)
 
@@ -51,4 +51,5 @@ class RedisHelper:
         serialized_data = DjangoModelSerializer.serialize(obj)
         #因为是最新的tweet, 应该放在左边第一个
         conn.lpush(key, serialized_data)
+        conn.ltrim(key, 0, settings.REDIS_LIST_LENGTH_LIMIT - 1)
 
